@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:typed_data';
+import 'dart:js_interop';
 
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_picker/file_picker.dart';
@@ -146,7 +147,7 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
     if (book.tables.isEmpty) return [];
     final sheet = book.tables.values.first;
     final output = <List<String>>[];
-    for (var i = 1; i < sheet!.rows.length; i++) {
+    for (var i = 1; i < sheet.rows.length; i++) {
       final row = sheet.rows[i];
       final values = List.generate(4, (j) => j < row.length ? (row[j]?.value?.toString() ?? '').trim() : '');
       if (values[0].isNotEmpty && double.tryParse(values[3].replaceAll(',', '')) != null) {
@@ -188,10 +189,13 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
   }
 
   void _downloadBytes(Uint8List bytes, String name, String mime) {
-    final blob = html.Blob([bytes], mime);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)..setAttribute('download', name)..click();
-    html.Url.revokeObjectUrl(url);
+    final blob = web.Blob([bytes.toJS].toJS, web.BlobPropertyBag(type: mime));
+    final url = web.URL.createObjectURL(blob);
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
+      ..download = name;
+    anchor.click();
+    web.URL.revokeObjectURL(url);
   }
 
   void _clearSession() => setState(() { _employees.clear(); _step = 0; _message = 'सत्रातील सर्व कर्मचारी माहिती हटवली.'; });
@@ -219,7 +223,7 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
           const SizedBox(height: 18),
           if (_message != null) Container(margin: const EdgeInsets.only(bottom: 16), padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFDDE8E1))), child: Row(children: [const Icon(Icons.info_outline, color: _green), const SizedBox(width: 10), Expanded(child: Text(_message!))])),
           if (_step == 0) _setup(compact) else if (_step == 1) _review() else _summary(compact),
-        ])))),
+        ]))))),
       ]),
     );
   }
@@ -293,10 +297,46 @@ class _Hero extends StatelessWidget {
 class _StepHeader extends StatelessWidget {
   const _StepHeader({required this.step});
   final int step;
+
   @override
   Widget build(BuildContext context) {
     const labels = ['माहिती आयात', 'तपासणी', 'सारांश व डाउनलोड'];
-    return Row(children: List.generate(3, (i) => Expanded(child: Row(children: [CircleAvatar(radius: 15, backgroundColor: i <= step ? _green : const Color(0xFFD6DDD8), child: i < step ? const Icon(Icons.check, color: Colors.white, size: 17) : Text('${i + 1}', style: TextStyle(color: i <= step ? Colors.white : Colors.black54, fontWeight: FontWeight.w700))), const SizedBox(width: 7), Expanded(child: Text(labels[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: i == step ? FontWeight.w800 : FontWeight.w500, color: i <= step ? _darkGreen : Colors.black45))), if (i < 2) const SizedBox(width: 8)])));
+    return Row(
+      children: List.generate(3, (i) {
+        return Expanded(
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 15,
+                backgroundColor: i <= step ? _green : const Color(0xFFD6DDD8),
+                child: i < step
+                    ? const Icon(Icons.check, color: Colors.white, size: 17)
+                    : Text(
+                        '${i + 1}',
+                        style: TextStyle(
+                          color: i <= step ? Colors.white : Colors.black54,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  labels[i],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: i == step ? FontWeight.w800 : FontWeight.w500,
+                    color: i <= step ? _darkGreen : Colors.black45,
+                  ),
+                ),
+              ),
+              if (i < 2) const SizedBox(width: 8),
+            ],
+          ),
+        );
+      }),
+    );
   }
 }
 
