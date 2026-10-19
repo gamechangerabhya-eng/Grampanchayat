@@ -1,0 +1,23 @@
+name: lasalgaon_salary_app
+description: Privacy-first monthly salary preparation for Lasalgaon Gram Panchayat.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  file_picker: ^8.1.7
+  excel: ^4.0.6
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,11 @@
+{
+  "name": "लासलगाव ग्रामपंचायत वेतन प्रणाली",
+  "short_name": "लासलगाव वेतन",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F5F8F6",
+  "theme_color": "#0D3D2B",
+  "description": "Privacy-first salary workbook preparation in the browser",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
