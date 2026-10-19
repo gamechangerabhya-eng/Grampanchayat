@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'services/file_download_service.dart';
 
@@ -16,6 +15,39 @@ const _saffron = Color(0xFFE69A2D);
 const _surface = Color(0xFFF5F8F6);
 const _photoUrl =
     'https://images.tv9marathi.com/wp-content/uploads/2022/04/12213120/New-Project-3-13.jpg';
+
+
+const _marathiMonths = <String>[
+  'जानेवारी',
+  'फेब्रुवारी',
+  'मार्च',
+  'एप्रिल',
+  'मे',
+  'जून',
+  'जुलै',
+  'ऑगस्ट',
+  'सप्टेंबर',
+  'ऑक्टोबर',
+  'नोव्हेंबर',
+  'डिसेंबर',
+];
+
+String formatIndianCurrency(num value) {
+  final rounded = value.round();
+  final sign = rounded < 0 ? '-' : '';
+  final digits = rounded.abs().toString();
+  if (digits.length <= 3) return '$sign₹$digits';
+
+  final lastThree = digits.substring(digits.length - 3);
+  var leading = digits.substring(0, digits.length - 3);
+  final groups = <String>[];
+  while (leading.length > 2) {
+    groups.insert(0, leading.substring(leading.length - 2));
+    leading = leading.substring(0, leading.length - 2);
+  }
+  if (leading.isNotEmpty) groups.insert(0, leading);
+  return '$sign₹${groups.join(',')},$lastThree';
+}
 
 enum Department { gramNidhi, waterSupply }
 
@@ -226,7 +258,7 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
     final cards = Department.values.map((d) => _ImportCard(department: d, count: _of(d).length, busy: _busy, onImport: () => _import(d), onTemplate: () => _downloadTemplate(d))).toList();
     return Column(children: [
       Card(child: Padding(padding: const EdgeInsets.all(20), child: Wrap(spacing: 16, runSpacing: 16, crossAxisAlignment: WrapCrossAlignment.center, children: [
-        SizedBox(width: compact ? 145 : 220, child: DropdownButtonFormField<int>(value: _month, decoration: const InputDecoration(labelText: 'महिना'), items: List.generate(12, (i) => DropdownMenuItem(value: i + 1, child: Text(DateFormat.MMMM('mr').format(DateTime(2020, i + 1))))), onChanged: (v) => setState(() => _month = v!))),
+        SizedBox(width: compact ? 145 : 220, child: DropdownButtonFormField<int>(value: _month, decoration: const InputDecoration(labelText: 'महिना'), items: List.generate(12, (i) => DropdownMenuItem(value: i + 1, child: Text(_marathiMonths[i]))), onChanged: (v) => setState(() => _month = v!))),
         SizedBox(width: compact ? 145 : 180, child: DropdownButtonFormField<int>(value: _year, decoration: const InputDecoration(labelText: 'वर्ष'), items: List.generate(6, (i) => DropdownMenuItem(value: DateTime.now().year - 2 + i, child: Text('${DateTime.now().year - 2 + i}'))), onChanged: (v) => setState(() => _year = v!))),
       ]))),
       const SizedBox(height: 16),
@@ -256,14 +288,14 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
     final totalNet = _sum(_employees.map((e) => e.net));
     final metrics = [
       _Metric('कर्मचारी', '${_employees.length}', Icons.groups_rounded, _green),
-      _Metric('एकूण वेतन', NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(totalGross), Icons.payments_outlined, const Color(0xFF2463A8)),
-      _Metric('एकूण वजाती', NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(totalDed), Icons.remove_circle_outline, const Color(0xFFB66B16)),
-      _Metric('निव्वळ रक्कम', NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(totalNet), Icons.verified_outlined, _green),
+      _Metric('एकूण वेतन', formatIndianCurrency(totalGross), Icons.payments_outlined, const Color(0xFF2463A8)),
+      _Metric('एकूण वजाती', formatIndianCurrency(totalDed), Icons.remove_circle_outline, const Color(0xFFB66B16)),
+      _Metric('निव्वळ रक्कम', formatIndianCurrency(totalNet), Icons.verified_outlined, _green),
     ];
     return Column(children: [
       GridView.count(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisCount: compact ? 2 : 4, childAspectRatio: compact ? 1.25 : 1.6, crossAxisSpacing: 12, mainAxisSpacing: 12, children: metrics),
       const SizedBox(height: 16),
-      Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: Department.values.map((d) { final list = _of(d); return ListTile(contentPadding: EdgeInsets.zero, leading: CircleAvatar(backgroundColor: const Color(0xFFE8F4EE), child: Icon(d.icon, color: _green)), title: Text(d.mr, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${list.length} कर्मचारी'), trailing: Text(NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0).format(_sum(list.map((e) => e.net))), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))); }).toList()))),
+      Card(child: Padding(padding: const EdgeInsets.all(20), child: Column(children: Department.values.map((d) { final list = _of(d); return ListTile(contentPadding: EdgeInsets.zero, leading: CircleAvatar(backgroundColor: const Color(0xFFE8F4EE), child: Icon(d.icon, color: _green)), title: Text(d.mr, style: const TextStyle(fontWeight: FontWeight.w800)), subtitle: Text('${list.length} कर्मचारी'), trailing: Text(formatIndianCurrency(_sum(list.map((e) => e.net))), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16))); }).toList()))),
       const SizedBox(height: 16),
       Row(children: [OutlinedButton.icon(onPressed: () => setState(() => _step = 1), icon: const Icon(Icons.arrow_back), label: const Text('सुधारणा')), const Spacer(), FilledButton.icon(onPressed: _exportWorkbook, icon: const Icon(Icons.download_rounded), label: const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Text('Excel तयार करा')))]),
     ]);
