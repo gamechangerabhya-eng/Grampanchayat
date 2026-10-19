@@ -1,11 +1,12 @@
 import 'dart:convert';
-import 'dart:html' as html;
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'services/file_download_service.dart';
 
 void main() => runApp(const LasalgaonSalaryApp());
 
@@ -188,12 +189,7 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
   }
 
   void _downloadBytes(Uint8List bytes, String name, String mime) {
-    final blob = html.Blob([bytes], mime);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.AnchorElement(href: url)
-      ..setAttribute('download', name)
-      ..click();
-    html.Url.revokeObjectUrl(url);
+    downloadBytes(bytes, name, mime);
   }
 
   void _clearSession() => setState(() { _employees.clear(); _step = 0; _message = 'सत्रातील सर्व कर्मचारी माहिती हटवली.'; });
