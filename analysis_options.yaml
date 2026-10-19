@@ -2,3 +2,7 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   errors:
     deprecated_member_use: ignore
+
+linter:
+  rules:
+    avoid_web_libraries_in_flutter: false

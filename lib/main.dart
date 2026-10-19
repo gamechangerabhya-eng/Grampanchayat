@@ -1,7 +1,6 @@
 import 'dart:convert';
-import 'package:web/web.dart' as web;
+import 'dart:html' as html;
 import 'dart:typed_data';
-import 'dart:js_interop';
 
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_picker/file_picker.dart';
@@ -189,13 +188,12 @@ class _SalaryHomePageState extends State<SalaryHomePage> {
   }
 
   void _downloadBytes(Uint8List bytes, String name, String mime) {
-    final blob = web.Blob([bytes.toJS].toJS, web.BlobPropertyBag(type: mime));
-    final url = web.URL.createObjectURL(blob);
-    final anchor = web.HTMLAnchorElement()
-      ..href = url
-      ..download = name;
-    anchor.click();
-    web.URL.revokeObjectURL(url);
+    final blob = html.Blob([bytes], mime);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', name)
+      ..click();
+    html.Url.revokeObjectUrl(url);
   }
 
   void _clearSession() => setState(() { _employees.clear(); _step = 0; _message = 'सत्रातील सर्व कर्मचारी माहिती हटवली.'; });
